@@ -4,3 +4,4 @@ all:
     oracle_test_micro1:
       hosts:
         oracle_test_micro1: 
+          hostname: micro1

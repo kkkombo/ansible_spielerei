@@ -1,0 +1,6 @@
+---
+- name: hello_world
+  hosts: all
+  #become: yes
+  roles: 
+    - hello-world

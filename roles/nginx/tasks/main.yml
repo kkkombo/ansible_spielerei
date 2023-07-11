@@ -3,3 +3,15 @@
   apt:
     name: 
       - nginx
+  tags: install_nginx
+
+- name: copy nginx content files
+  copy:
+    src: "{{ item }}"
+    dest: /var/www/html/
+    group: www-data
+    owner: www-data
+    mode: 0755
+  with_fileglob:
+    - files/{{ hostname }}/index.html
+  tags: install_nginx

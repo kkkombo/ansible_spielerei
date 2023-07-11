@@ -1,6 +1,7 @@
 ---
 - name: hello_world
   hosts: all
-  #become: yes
+  become: yes
   roles: 
-    - hello-world
+    - firewalld
+    - nginx

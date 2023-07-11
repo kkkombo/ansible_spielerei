@@ -1,0 +1,15 @@
+---
+- name: Install firewalld
+  apt:
+    name:
+      - firewalld
+    state: present
+
+- name: Add firewall ports
+  shell: "firewall-cmd --permanent --zone=public --add-port={{ item }};"
+  loop:
+    - "80/tcp"
+    - "443/tcp"
+
+- name: firewalld reload
+  shell: "firewall-cmd --reload;"

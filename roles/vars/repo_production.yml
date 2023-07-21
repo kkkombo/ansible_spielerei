@@ -1,0 +1,19 @@
+# Based on a staging variable set in repo_vars.yml
+# prod / staging / dev environment and a corresponding 
+# repo_*.yml file will be chosen.
+# 
+# This repo has only production .xml for testing purposes.
+
+wazuh_repo:
+  apt: 'deb https://packages.wazuh.com/4.x/apt/ stable main'
+  yum: 'https://packages.wazuh.com/4.x/yum/'
+  # GPG vs. SSH: https://security.stackexchange.com/questions/264365/what-are-the-security-implications-of-using-gpg-instead-of-ssh-keys-for-authenti
+  gpg: 'https://packages.wazuh.com/key/GPG-KEY-WAZUH'
+  key_id: '0DCFCA5547B19D2A6099506096B3EE5F29111145'
+wazuh_winagent_config_url: "https://packages.wazuh.com/4.x/windows/wazuh-agent-{{ wazuh_agent_version }}-1.msi"
+wazuh_winagent_package_name: "wazuh-agent-{{ wazuh_agent_version }}-1.msi"
+
+certs_gen_tool_version: 4.4
+
+# Url of certificates generator tool.
+certs_gen_tool_url: "https://packages.wazuh.com/{{ certs_gen_tool_version }}/wazuh-certs-tool.sh"

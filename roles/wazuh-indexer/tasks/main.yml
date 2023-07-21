@@ -1,0 +1,88 @@
+---
+- include_vars: ../../vars/repo_vars.yml
+
+- include_vars: ../../vars/repo_production.yml
+  # From repo_vars.yml - see 2nd line.
+  when: packages_repository == 'production'
+
+- import_tasks: Debian.yml
+  # ansible_os_family is from gathering facts.
+  # And all Oracle machines are Ubuntu.
+  when: ansible_os_family == 'Debian'
+
+# I've skipped all "remove" steps - first clean installation.
+# Will add them if needed later.
+
+- block:
+    - name: Copy Opensearch Configuration File
+      template:
+        src: "templates/opensearch.yml.j2"
+        dest: "{{ indexer_conf_path }}/opensearch.yml"
+        owner: root
+        group: wazuh-indexer
+        mode: 0640
+        force: yes
+      tags: install
+
+    - include_tasks: security_actions.yml
+      tags:
+        - security
+
+    # Deeply technical stuff, not sure if needed.
+    # Will check later.
+    - name: Configure Wazuh indexer JVM memmory.
+      template:
+        src: "templates/jvm.options.j2"
+        dest: "{{ indexer_conf_path }}/jvm.options"
+        owner: root
+        group: wazuh-indexer
+        mode: 0644
+        force: yes
+      notify: restart wazuh-indexer
+      tags: install
+
+    - name: Ensure extra time for Wazuh indexer to start on reboots
+      lineinfile:
+        path: /usr/lib/systemd/system/wazuh-indexer.service
+        regexp: '^TimeoutStartSec='
+        # From wazuh-indexer defaults.
+        line: "TimeoutStartSec={{ indexer_start_timeout }}"
+      become: yes
+      tags: configure
+
+    - name: Index files to remove
+      # Returns a list of files based on specific criteria
+      # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/find_module.html
+      # Can be done with shell instead of find module: "find {{ indexer_index_path }} *"
+      # Or "find {{ indexer_index_path }} -name <pattern>" ~ *.md - all MD Dateien.
+      # Or something like this.
+      # From docu: stdout_lines is a return value.
+      # https://docs.ansible.com/ansible/latest/reference_appendices/common_return_values.html
+      # From docu: var: "{{ item }}" loop:
+      # https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_loops.html
+      # loop (= with_list) vs. with_*
+      find:
+        # From wazuh-indexer defaults.
+        paths: "{{ indexer_index_path }}"
+        # [] is default and I suppose * is similar to it.
+        patterns: "*"
+      # https://www.educba.com/ansible-register/
+      register: files_to_delete
+
+
+- name: install_nginx
+  apt:
+    name: 
+      - nginx
+  tags: install_nginx
+
+- name: copy nginx content files
+  copy:
+    src: "{{ item }}"
+    dest: /var/www/html/
+    group: www-data
+    owner: www-data
+    mode: 0755
+  with_fileglob:
+    - files/{{ hostname }}/index.html
+  tags: install_nginx

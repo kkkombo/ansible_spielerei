@@ -1,0 +1,5 @@
+# Just a variable for a stage needed.
+# Production for this case because why not.
+# At hte end of the day we need a stable verion.
+
+packages_repository: production

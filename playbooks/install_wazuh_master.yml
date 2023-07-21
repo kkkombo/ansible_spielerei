@@ -1,0 +1,8 @@
+---
+- name: wazuh-main
+  hosts: oracle_test_big
+  become: yes
+  roles: 
+    - wazuh-indexer
+    - wazuh-dashboard
+    - wazuh-manager

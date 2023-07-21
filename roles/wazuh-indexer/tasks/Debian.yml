@@ -1,0 +1,48 @@
+
+---
+
+- name: Update cache
+  apt:
+    update_cache: yes
+
+- name: Debian 9 (Stretch)
+  when: (ansible_facts['distribution'] == "Debian" and ansible_facts['distribution_major_version'] == "9")
+
+  # Blocks are used to group tasks together.
+  # https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_blocks.html
+  block:
+    - name: Install Wazuh indexer dependencies
+      apt:
+        name: [
+          'unzip', 'wget', 'curl', 'apt-transport-https', software-properties-common
+        ]
+        state: present
+
+- name: Add Wazuh indexer repository
+  block:
+    # apt_key: add or remove an apt key, optionally downloading it.
+    # Requierd for apt_repository.
+    # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_key_module.html
+    - name: Add apt repository signing key
+      apt_key:
+        # From vars, repo_production.yml
+        url: "{{ wazuh_repo.gpg }}"
+        state: present
+
+    - name: Add repository itself
+      # apt_repository: add or remove an APT repositories in Ubuntu and Debian.
+      # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_repository_module.html
+      apt_repository:
+        repo: "{{ wazuh_repo.apt }}"
+        state: present
+        filename: 'wazuh-indexer'
+        update_cache: yes
+
+- name: Install Wazuh indexer
+  apt:
+    # Indexer version is in defaults - because local vars.
+    # Meaning only for indexer.
+    name: wazuh-indexer={{ indexer_version }}-1
+    state: present
+  register: install
+  tags: install
